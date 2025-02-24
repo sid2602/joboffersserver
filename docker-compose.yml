@@ -5,10 +5,8 @@ services:
     image: postgres:latest
     container_name: postgres_container
     restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydatabase
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -22,13 +20,8 @@ services:
     restart: always
     depends_on:
       - db
-    environment:
-      DB_HOST: db
-      DB_USER: user
-      DB_PASSWORD: password
-      DB_NAME: mydatabase
-      DB_PORT: 5432
-      PORT: 3000
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     volumes:

@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import nodemailer from "nodemailer";
 import { Pool } from "pg";
 import z from "zod";
 
@@ -16,6 +17,14 @@ const pool = new Pool({
 	port: Number(process.env.DB_PORT),
 });
 
+const transporter = nodemailer.createTransport({
+	service: "gmail",
+	auth: {
+		user: process.env.EMAIL_USER,
+		pass: process.env.EMAIL_PASS,
+	},
+});
+
 const offer = z.object({
 	id: z.number().optional().nullable(),
 	company: z.string(),
@@ -27,8 +36,6 @@ const offer = z.object({
 	link: z.string(),
 	createdAt: z.string().optional().nullable(),
 });
-
-const offers = z.array(offer);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -72,6 +79,21 @@ app.post("/offers", async (req, res) => {
 			RETURNING *`,
 			[company, title, uop, uz, b2b, technologies, link]
 		);
+
+		const mailOptions = {
+			from: process.env.EMAIL_USER,
+			to: process.env.EMAIL_USER,
+			subject: `New Job offer, ${title}, ${company}`,
+			text: `${title} \n ${company} \n uop:${uop} / b2b:${b2b} / uz:${uz} \n ${technologies} \n ${link}`,
+		};
+
+		transporter.sendMail(mailOptions, (error, info) => {
+			if (error) {
+				console.log("Error:", error);
+			} else {
+				console.log("Email sent:", info.response);
+			}
+		});
 
 		res.json({ result: insert.rows[0] });
 	} catch (err) {
