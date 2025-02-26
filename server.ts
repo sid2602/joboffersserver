@@ -56,6 +56,7 @@ app.post("/offers", async (req, res) => {
 		const parsedData = offer.safeParse(body);
 
 		if (parsedData.success === false) {
+			console.error("Invalid body");
 			res.status(400).json({ error: "Invalid body" });
 			return;
 		}
@@ -68,6 +69,7 @@ app.post("/offers", async (req, res) => {
 		);
 
 		if (result.rows.length > 0) {
+			console.error("Already exists");
 			res.status(400).json({ error: "Already exists" });
 			return;
 		}
@@ -98,7 +100,7 @@ app.post("/offers", async (req, res) => {
 		res.json({ result: insert.rows[0] });
 	} catch (err) {
 		console.error(err);
-		res.status(500).json({ error: "Database connection failed" });
+		res.status(500).json({ error: "Unknown error" });
 	}
 });
 
