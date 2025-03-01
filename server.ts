@@ -50,6 +50,32 @@ app.get("/", async (req, res) => {
 	}
 });
 
+
+app.get("/mail", async (req, res) => {
+        try {
+                                const mailOptions = {
+                        from: process.env.EMAIL_USER,
+                        to: process.env.EMAIL_USER,
+                        subject: `TEST`,
+                        text: `TEST`,
+                };
+
+                transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                                console.log("Error:", error);
+                        } else {
+                                console.log("Email sent:", info.response);
+                        }
+                });
+
+        } catch (err) {
+                console.error(err);
+                res.status(500).json({ error: "Database connection failed" });
+        }
+});
+
+
+
 app.post("/offers", async (req, res) => {
 	try {
 		const body = req.body;
