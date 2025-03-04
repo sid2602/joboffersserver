@@ -4,6 +4,13 @@ import nodemailer from "nodemailer";
 import { Pool } from "pg";
 import z from "zod";
 
+class Logger {
+	static log(text: string) {
+		const date = new Date();
+		console.log(`${date.toUTCString()} | ${text}`);
+	}
+}
+
 dotenv.config();
 
 const app = express();
@@ -45,36 +52,32 @@ app.get("/", async (req, res) => {
 		const result = await pool.query("SELECT * FROM offers");
 		res.json({ result: result.rows });
 	} catch (err) {
-		console.error(err);
+		Logger.log(err);
 		res.status(500).json({ error: "Database connection failed" });
 	}
 });
 
-
 app.get("/mail", async (req, res) => {
-        try {
-                                const mailOptions = {
-                        from: process.env.EMAIL_USER,
-                        to: process.env.EMAIL_USER,
-                        subject: `TEST`,
-                        text: `TEST`,
-                };
+	try {
+		const mailOptions = {
+			from: process.env.EMAIL_USER,
+			to: process.env.EMAIL_USER,
+			subject: `TEST`,
+			text: `TEST`,
+		};
 
-                transporter.sendMail(mailOptions, (error, info) => {
-                        if (error) {
-                                console.log("Error:", error);
-                        } else {
-                                console.log("Email sent:", info.response);
-                        }
-                });
-
-        } catch (err) {
-                console.error(err);
-                res.status(500).json({ error: "Database connection failed" });
-        }
+		transporter.sendMail(mailOptions, (error, info) => {
+			if (error) {
+				Logger.log(`Error: ${error}`);
+			} else {
+				Logger.log(`Email sent: ${info.response})`);
+			}
+		});
+	} catch (err) {
+		Logger.log(err);
+		res.status(500).json({ error: "Database connection failed" });
+	}
 });
-
-
 
 app.post("/offers", async (req, res) => {
 	try {
@@ -82,7 +85,7 @@ app.post("/offers", async (req, res) => {
 		const parsedData = offer.safeParse(body);
 
 		if (parsedData.success === false) {
-			console.error("Invalid body");
+			Logger.log("Invalid body");
 			res.status(400).json({ error: "Invalid body" });
 			return;
 		}
@@ -95,7 +98,7 @@ app.post("/offers", async (req, res) => {
 		);
 
 		if (result.rows.length > 0) {
-			console.error("Already exists");
+			Logger.log("Already exists");
 			res.status(400).json({ error: "Already exists" });
 			return;
 		}
@@ -117,19 +120,19 @@ app.post("/offers", async (req, res) => {
 
 		transporter.sendMail(mailOptions, (error, info) => {
 			if (error) {
-				console.log("Error:", error);
+				Logger.log(`Email error: ${error}`);
 			} else {
-				console.log("Email sent:", info.response);
+				Logger.log(`Email sent: ${info.response}`);
 			}
 		});
 
 		res.json({ result: insert.rows[0] });
 	} catch (err) {
-		console.error(err);
+		Logger.log(`${err}`);
 		res.status(500).json({ error: "Unknown error" });
 	}
 });
 
 app.listen(port, () => {
-	console.log(`Server is running on port ${port}`);
+	Logger.log(`Server is running on port ${port}`);
 });
